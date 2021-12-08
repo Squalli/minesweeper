@@ -1,0 +1,59 @@
+*{
+    box-sizing: border-box;
+}
+body{
+    margin: 0;
+}
+#minesweeper{
+    display: flex;
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
+}
+#grid{
+    display: grid;
+    width: auto;
+    margin: 3em auto;
+}
+.cell{
+    border: 8px outset #aaa;
+    background-color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0em;
+    transition: border-width 0.1s, font-size 0.3s;
+}
+.cell.empty{
+    border-width: 0px;
+}
+.cell.near, .cell.flag, .cell.doubt, .cell.boom{ font-size: 1.5em; }
+.cell.near-1{ color: blue; }
+.cell.near-2{ color: green;  }
+.cell.near-3{ color: red;  }
+.cell.near-4{ color: purple;  }
+.cell.near-5{ color: black;  }
+.cell.near-6{ color: gray;  }
+.cell.near-7{ color: maroon;  }
+.cell.near-8{ color: turquoise;  }
+.cell.flag::before{ content: "\1F3F4"; color: red; }
+.cell.doubt::before{ content: "\0003F"; color: red; }
+
+.cell.boom::before{ content: "\1F4A3"; color: black; }
+.cell.boom{
+    animation: boom 1s forwards;
+    border-width: 0;
+}
+@keyframes boom{
+    50%{
+        background-color: rgb(88, 5, 5);
+        transform: scale(2);
+        
+    }
+    100%{
+        background-color: rgb(253, 65, 65);
+        transform: scale(1);
+    }
+}
