@@ -1,11 +1,14 @@
+const gridSize = [10, 20]
+const nbMines = 30
+
 function plantMines(nbMines, sizes){
     let minesPos = []
 
-    const generateMinePos = ([maxY, maxX]) => {
-        let randomX = Math.floor(Math.random() * maxX)
-        let randomY = Math.floor(Math.random() * maxY)
+    const generateMinePos = ([rows, cols]) => {
+        let randomRow = Math.floor(Math.random() * rows)
+        let randomCol = Math.floor(Math.random() * cols)
 
-        return randomX+"-"+randomY
+        return randomRow+"-"+randomCol
     }
     
     while(minesPos.length < nbMines){
@@ -23,8 +26,6 @@ function plantMines(nbMines, sizes){
 document.addEventListener("DOMContentLoaded", () => {
     let gameStart = true
 
-    const gridSize = [20, 20]
-    const nbMines = 50
     const grid = document.querySelector("#grid")
     grid.style.gridTemplateColumns = "repeat("+gridSize[0]+", 50px)"
     grid.style.gridTemplateRows = "repeat("+gridSize[1]+", 50px)"
@@ -77,8 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         return nb
     }
-
-    let delay = 0
+    
     let nbchecks = 0
     const check = (cell) => {
         nbchecks++
@@ -90,16 +90,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if(mines.indexOf(coords) > -1){
             
-            gameOver()
+            gameOver(coords)
         }
         else if(nbMinesAround > 0){
             cell.classList.add("near", "near-"+nbMinesAround)
             cell.innerText = nbMinesAround
         }
         else{
-            cell.style.transitionDelay = delay+"s"
+            
             cell.classList.add("empty")
-            delay+= 0.02
+            
 
             for(let adjCell of adjCells){
                 let coords = adjCell.dataset.coords
@@ -107,15 +107,39 @@ document.addEventListener("DOMContentLoaded", () => {
                     check(adjCell)
                 }
             }
-            delay = 0
+            
         }
     }
 
-    const gameOver = () => {
-        for(let mineCoords of mines){
-            let mineCell = grid.querySelector(".cell[data-coords='"+mineCoords+"']")
+    const gameOver = (explodingCoords) => {
+        let delay = 0
+        let minesTemp = [...mines]
+
+        minesTemp.sort((a, b) => {
+            let coordsA = a.split("-").map(c => parseInt(c))
+            let coordsB = b.split("-").map(c => parseInt(c))
+            let order = 0
+            order = coordsA[0] < coordsB[0] ? order-2 : order+2
+            order = coordsA[1] < coordsB[1] ? order-1 : order+1
+            return order
+        })
+        console.log(minesTemp)
+        const explodeMine = (coords, delay) => {
+            let mineCell = grid.querySelector(".cell[data-coords='"+coords+"']")
+            mineCell.style.animationDelay = delay+"s"
             mineCell.classList.add("boom")
         }
+
+        explodeMine(explodingCoords, delay)
+        minesTemp.splice(minesTemp.indexOf(explodingCoords), 1)
+        delay+= 0.5
+
+        for(let mineCoords of minesTemp){
+            explodeMine(mineCoords, delay)
+            delay+= 0.05
+        }
+
+        grid.classList.add("game-over")
         gameStart = false
     }
    

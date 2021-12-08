@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+
+*{
+    box-sizing: border-box;
+}
+body{
+    margin: 0;
+    font-family: 'Varela Round', sans-serif;
+}
+#minesweeper{
+    display: flex;
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
+    
+}
+#grid{
+    display: grid;
+    background-color: rgb(168, 168, 168);
+    width: auto;
+    margin: auto;
+    border-radius: 1em;
+    border: 0.5em solid rgb(168, 168, 168);
+    transition: background-color 0.5s, border-color 0.5s;
+}
+#grid.game-over{
+    background-color: rgb(253, 65, 65);
+    border-color: rgb(253, 65, 65);
+}
+
+.cell{
+    box-shadow: inset -2px -3px 6px rgb(131, 131, 131), inset 1px 2px 6px #fff;
+    background-color: rgb(200, 200, 200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0em;
+    border-radius: 8px;
+    transition: box-shadow 0.5s, background-color 0.5s, font-size 0.5s;
+}
+.cell:hover {
+    background-color: rgb(255, 255, 255);
+    transition: font-size 0.5s, background-color 0s;
+}
+.cell.empty{
+    box-shadow: none;
+    background-color: transparent;
+}
+
+.cell.near, .cell.boom{ font-size: 1.5em; }
+.cell.flag{
+    font-size: 1.8em;
+}
+.cell.doubt{
+    font-size: 2.6em;
+}
+.cell.near-1{ color: blue; }
+.cell.near-2{ color: green;  }
+.cell.near-3{ color: red;  }
+.cell.near-4{ color: purple;  }
+.cell.near-5{ color: black;  }
+.cell.near-6{ color: gray;  }
+.cell.near-7{ color: maroon;  }
+.cell.near-8{ color: turquoise;  }
+.cell.flag::before{ content: "\02691"; color: red; }
+.cell.doubt::before{ content: "\0003F"; color: red; }
+
+.cell.boom{
+    background: rgb(200, 200, 200) url('mine.ico') no-repeat center center;
+    background-size: 0px 0px;
+    font-size: 0em;
+    animation: boom 0.5s forwards;
+}
+@keyframes boom{
+    50%{
+        background-color: rgb(255, 255, 255);
+        transform: scale(2);
+        border-radius: 50%;
+        background-size: 50% 50%;
+        box-shadow: none;
+    }
+    100%{
+        background-color: rgb(253, 65, 65);
+        transform: scale(1);
+        border-radius: 0px;
+        box-shadow: none;
+        background-size: 75% 75%;
+    }
+}
