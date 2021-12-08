@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MINESWEEPER</title>
+    <style>
+        #minesweeper{
+            display: grid;
+            width: auto;
+            margin: 3em auto;
+        }
+        .cell{
+            border: 8px outset #aaa;
+            background-color: #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0em;
+            transition: border-width 0.1s, font-size 0.3s;
+        }
+        .cell.empty{
+            border-width: 0px;
+        }
+        .cell.near, .cell.flag, .cell.doubt, .cell.boom{ font-size: 1.5em; }
+        .cell.near-1{ color: blue; }
+        .cell.near-2{ color: green;  }
+        .cell.near-3{ color: red;  }
+        .cell.near-4{ color: purple;  }
+        .cell.near-5{ color: black;  }
+        .cell.near-6{ color: gray;  }
+        .cell.near-7{ color: maroon;  }
+        .cell.near-8{ color: turquoise;  }
+        .cell.flag::before{ content: "\1F3F4"; color: red; }
+        .cell.doubt::before{ content: "\0003F"; color: red; }
+        
+        .cell.boom::before{ content: "\1F4A3" }
+        .cell.boom{
+            animation: boom 1s forwards;
+            border-width: 0;
+        }
+        @keyframes boom{
+            
+            50%{
+                background-color: rgb(88, 5, 5);
+                color: #fff;
+                transform: scale(2);
+                
+            }
+            100%{
+                background-color: rgb(253, 65, 65);
+                color:rgb(88, 5, 5);
+                transform: scale(1);
+                
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    
+    <section id="minesweeper"></section>
+
+    <script>
+        function plantMines(nbMines, sizes){
+            let minesPos = []
+
+            const generateMinePos = ([maxY, maxX]) => {
+                let randomX = Math.floor(Math.random() * maxX)
+                let randomY = Math.floor(Math.random() * maxY)
+
+                return randomX+"-"+randomY
+            }
+            
+            while(minesPos.length < nbMines){
+                let coords = generateMinePos(sizes)
+                while(minesPos.indexOf(coords) > -1){
+                    coords = generateMinePos(sizes)
+                } 
+                minesPos.push(coords)
+            }
+            
+            console.log(minesPos)
+            return minesPos
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            let gameStart = true
+
+            const boardSize = [20, 20]
+            const nbMines = 50
+            const board = document.querySelector("#minesweeper")
+            board.style.gridTemplateColumns = "repeat("+boardSize[0]+", 50px)"
+            board.style.gridTemplateRows = "repeat("+boardSize[1]+", 50px)"
+
+            const mines = plantMines(nbMines, boardSize)
+        
+            const cell = document.createElement("div")
+            cell.classList.add("cell")
+            
+            for(let x = 0; x < boardSize[1]; x++){
+                for(let y = 0; y < boardSize[0]; y++){
+                    let thisCell = cell.cloneNode(true)
+                    thisCell.dataset.coords = x+"-"+y
+                    board.appendChild(thisCell)
+                }
+            }
+
+            const getCell = (coords) => {
+                let datacoords = coords.map(num => parseInt(num)).join("-")
+                return document.querySelector(".cell[data-coords='"+datacoords+"']")
+            }
+
+            const getAdjacentCells = (coords) => {
+
+                let adjacentCells = []
+                console.log(coords)
+                let tabCoords = coords.split("-")
+
+                for(let x = 1; x >= -1; x--){
+                    for(let y = 1; y >= -1; y--){
+                        let cell = getCell([tabCoords[0] - x, tabCoords[1] - y])
+                        if(cell !== null 
+                            && cell.dataset.coords != coords 
+                            && !cell.classList.contains("empty")
+                            && !cell.classList.contains("near")){
+                            adjacentCells.push(cell)
+                        }
+                    }
+                }
+                console.log(adjacentCells)
+                return adjacentCells
+            }
+
+            const countMinesIn = (cells) => {
+                let nb = 0
+                for(let cell of cells){
+                    if(mines.indexOf(cell.dataset.coords) > -1){
+                        nb++
+                    }
+                }
+                return nb
+            }
+
+            let delay = 0
+            let nbchecks = 0
+            const check = (cell) => {
+                nbchecks++
+                console.log(nbchecks)
+                let coords = cell.dataset.coords
+                    
+                let adjCells = getAdjacentCells(coords)
+                let nbMinesAround = countMinesIn(adjCells)
+
+                if(mines.indexOf(coords) > -1){
+                    
+                    gameOver()
+                }
+                else if(nbMinesAround > 0){
+                    cell.classList.add("near", "near-"+nbMinesAround)
+                    cell.innerText = nbMinesAround
+                }
+                else{
+                    cell.style.transitionDelay = delay+"s"
+                    cell.classList.add("empty")
+                    delay+= 0.02
+
+                    for(let adjCell of adjCells){
+                        let coords = adjCell.dataset.coords
+                        if(mines.indexOf(coords) == -1 && !adjCell.classList.contains("empty")){
+                            check(adjCell)
+                        }
+                    }
+                    delay = 0
+                }
+            }
+
+            const gameOver = () => {
+                for(let mineCoords of mines){
+                    let mineCell = board.querySelector(".cell[data-coords='"+mineCoords+"']")
+                    mineCell.classList.add("boom")
+                }
+                gameStart = false
+            }
+           
+//-------EVENTS-------
+            document.querySelectorAll(".cell").forEach(cell => {
+                cell.addEventListener("click", () => {
+                    if(gameStart){
+                        if(!cell.classList.contains("flag") && !cell.classList.contains("doubt")){
+                            check(cell)
+                        }
+                    }
+                    
+                })
+                cell.addEventListener("contextmenu", event => {
+                    event.preventDefault()
+                    if(gameStart && cell.innerText == ""){
+                        if(cell.classList.contains("doubt")){
+                            cell.classList.remove("doubt")
+                        }
+                        else if(cell.classList.contains("flag")){
+                            cell.classList.remove("flag")
+                            cell.classList.add("doubt")
+                        }
+                        else{
+                            cell.classList.add("flag")
+                        }
+                    }
+                    return false;
+                })
+            })
+
+        })
+    </script>
+</body>
+</html>
